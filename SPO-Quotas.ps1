@@ -1,24 +1,39 @@
-##By Kristopher Roy AKA TankCR
-##Last Modified 10May2023
-##Blog URL = https://tankcr.blogspot.com/
+$ver = '2.00'
 
-#The First thing we must do is call our SPOCreds Script
-#$SPOCred = "PathToScriptFile such as C:\Scripts\SPOCreds.PS1"
-#invoke-expression -Command $SPOCred
-#Set your Cloud Admin URL
+<#
+Created By: BTL - Kristopher Roy
+Last Updated On: 11Mar22
+Script Home: https://github.com/BellTechlogix/SPO-QuotaReport
+Purpose - To generate a report of quota threshold levels of a Sharepoint Online
+#>
+
+#Verify most recent version being used
+$curver = $ver
+$data = Invoke-RestMethod -Method Get -Uri https://raw.githubusercontent.com/BellTechlogix/SPO-QuotaReport/main/SPO-Quotas.ps1
+Invoke-Expression ($data.substring(0,13))
+if($curver -ge $ver){powershell -Command "& {[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms'); [System.Windows.Forms.MessageBox]::Show('You are running the most current script version $ver')}"}
+ELSEIF($curver -lt $ver){powershell -Command "& {[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms'); [System.Windows.Forms.MessageBox]::Show('You are running $curver the most current script version is $ver. Ending')}" 
+EXIT}
+
+
+##Variables Section##
 $org = "GTIL"
+$datestamp = Get-Date -Format "yyyyMMMdd"
+#Set your Cloud Admin URL - Should look like https://org-admin.sharepoint.com
 $Url = "https://gtinetorg-admin.sharepoint.com"
+#Now Set your Output File Locations, using your temp folder currently
+$OutputFolder = "C:\Temp"
+$File = "$OutputFolder\$org - SPO_Quatas-$datestamp.xml"
+$File2 = "$OutputFolder\$org - SPO_Quatas-$datestamp.xlsx"
+
 Connect-SPOService -url $url
 
-#Now Set your Output File Locations, use your temp folder
 
-$File = "C:\TEMP\usage-04Oct23.xml"
-$File2 = "C:\TEMP\usage-04Oct23.xlsx"
 
-#As I want this to be scheduled and Faced on my On-Prem SharePoint I set a net location to put the final copy
+#At this time automation is not possible due to MFA - Will update when options are available
 #$NetLoc = "\\myonpremsharepoint.local\sites\reporting\Shared Documents\"
 
-#This is our first Pattern, in this Pattern I am grabbing three different sections of the URL's so that I can sort my report automatically based on the core part that is similar across my sites. You will need to modify this to your site use http://regex101.com/ if you need help doing so...
+#If you need to bring specific sites to the top of your report This is a Pattern you can use, in this Pattern I am grabbing three different sections of the URL's so that I can sort my report automatically based on the core part that is similar across my sites. You will need to modify this to your site use http://regex101.com/ if you need help doing so...
 #$Pat = "(.*)(CRM.*_?)(_.*)"
 
 #Now we grab and store our sites in a sorted manner, I am first sorting by the pattern we set up top, then I am sorting by the sites using the highest percentage of their quotas.

@@ -23,8 +23,13 @@ $datestamp = Get-Date -Format "yyyyMMMdd"
 $Url = "https://gtinetorg-admin.sharepoint.com"
 #Now Set your Output File Locations, using your temp folder currently
 $OutputFolder = "C:\Temp"
+#Path for stored encrypted ClientSecret Creds
+$path = 'C:\reportsource\O365-Azure-SPO'
 $File = "$OutputFolder\$org - SPO_Quatas-$datestamp.xml"
 $File2 = "$OutputFolder\$org - SPO_Quatas-$datestamp.xlsx"
+#Total Purchased Space for SharePoint
+$TotalPurchased = "11.18"
+
 
 Connect-SPOService -url $url
 
@@ -38,10 +43,14 @@ Connect-SPOService -url $url
 
 #Now we grab and store our sites in a sorted manner, I am first sorting by the pattern we set up top, then I am sorting by the sites using the highest percentage of their quotas.
 #$Sites = (Get-SPOSite -Detailed -ErrorAction Ignore -limit all)|sort -Descending -Property URL,@{e={[INT]($_.StorageUsageCurrent)/[INT]($_.StorageQuota)}}
-$Sites = (Get-SPOSite -Detailed -ErrorAction Ignore -limit all)|sort -Descending|select *,@{e={[INT]($_.StorageUsageCurrent)/[INT]($_.StorageQuota)}}
+$Sites = (Get-SPOSite -Detailed -ErrorAction Ignore -limit all)|sort StorageUsageCurrent -Descending|select *,@{e={[INT]($_.StorageUsageCurrent)/[INT]($_.StorageQuota)}}
 
 #The Excel formatting requires a proper count on our Rows or it will error out, so we are going to grab a count on how many sites we have:
 $Number = $Sites.Count
+
+#For Out Email we need the total stored size and how much is left
+$TotalStored = ($Sites.StorageUsageCurrent|Measure-Object -Sum).Sum/1024/1024
+$TotalDif = $TotalPurchased - $TotalStored
 
 #Lets create our XML File, this is the initial formatting that it will need to understand what it is, and what styles we are using.
 (
@@ -175,7 +184,7 @@ If (($BasePercent -lt ".75") -and ($BasePercent -ge ".60")){$Percent = '<Cell ss
 If ($BasePercent -lt ".60"){$Percent = '<Cell ss:StyleID="s68"><Data ss:Type="Number">'+$BasePercent+'</Data></Cell>'}
 
 #I wanted any sites with Prod in them to be highlighted, you can change this to whatever you like
-$URLCODE = IF($Site.URL -ilike "*Prod*"){"s90"}ELSE{"s66"}
+$URLCODE = IF($Site.URL -ilike "*Leap*"){"s90"}ELSE{"s66"}
 add-content $File ('<Row ss:AutoFitHeight="0">')
 add-content $File ('<Cell ss:StyleID="s64"><Data ss:Type="String">'+($Title)+'</Data></Cell>')
 add-content $File ('<Cell ss:StyleID="'+($URLCODE)+'" ss:HRef="'+($Site.url)+'">'+'<Data ss:Type="String">'+($Site.url)+'</Data></Cell>')
@@ -233,3 +242,48 @@ $UserWorkBook.Close()
 #copy $file2 $NetLoc
 #remove-item $file
 #remove-item $file2
+
+# Read the credentials
+$Credentials = Import-Clixml -Path $Path\Access.xml
+
+#Connect MGGraph API
+connect-MgGraph -TenantId '1f05524b-c860-46e3-a2e8-4072506b3e4a' -clientsecretcredential $credentials
+
+$report = $file2
+
+$EncodedAttachment = [convert]::ToBase64String((Get-Content $report -Encoding byte)) 
+    $message = @{
+        subject = 'GTIL - '+$datestamp+'-Weekly SPO Report'
+        ToRecipients = @(
+                @{
+                    EmailAddress = @{
+                        Address = "kroy@belltechlogix.com"}
+                }
+                @{
+                    EmailAddress = @{
+                        Address = "smoss@belltechlogix.com"}
+                }
+                @{
+                    EmailAddress = @{
+                        Address = "cmills@belltechlogix.com"}
+                }
+                @{
+                    EmailAddress = @{
+                        Address = "abf12679.BellTechlogix.mail.onmicrosoft.com@amer.teams.ms"}
+                }
+            )
+        body = @{
+            contentType = 'html'
+            content = 'Weekly GTIL SharePoint Report - '+$TotalDif+' GB Left Available'
+        }
+        Attachments = @(
+			@{
+				"@odata.type" = "#microsoft.graph.fileAttachment"
+				name = ($report -split '\\')[-1]
+				ContentType = "application/csv"
+				ContentBytes = $EncodedAttachment
+			}
+	    )
+    }
+
+    Send-MgUserMail -Message $message -UserId "Reporting@gti.gt.com"

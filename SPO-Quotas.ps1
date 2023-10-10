@@ -274,7 +274,7 @@ $EncodedAttachment = [convert]::ToBase64String((Get-Content $report -Encoding by
             )
         body = @{
             contentType = 'html'
-            content = 'Weekly GTIL SharePoint Report - '+$TotalDif+' GB Left Available'
+            content = 'Weekly GTIL SharePoint Report - '+$TotalDif+' GB Left Available out of '+$TotalPurchased+' GB'
         }
         Attachments = @(
 			@{

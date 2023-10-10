@@ -271,6 +271,20 @@ $EncodedAttachment = [convert]::ToBase64String((Get-Content $report -Encoding by
                     EmailAddress = @{
                         Address = "abf12679.BellTechlogix.mail.onmicrosoft.com@amer.teams.ms"}
                 }
+                            @{
+                    EmailAddress = @{
+                        Address = "alex.martin@gti.gt.com"}
+                }
+                }
+                            @{
+                    EmailAddress = @{
+                        Address = "naresh.ramlogan@gti.gt.com"}
+                }
+                }
+                            @{
+                    EmailAddress = @{
+                        Address = "Ernie.Geib@gti.gt.com"}
+                }
             )
         body = @{
             contentType = 'html'

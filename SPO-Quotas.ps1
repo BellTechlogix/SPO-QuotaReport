@@ -1,8 +1,8 @@
-$ver = '2.00'
+$ver = '2.10'
 
 <#
 Created By: BTL - Kristopher Roy
-Last Updated On: 11Mar22
+Last Updated On: 10Sep23
 Script Home: https://github.com/BellTechlogix/SPO-QuotaReport
 Purpose - To generate a report of quota threshold levels of a Sharepoint Online
 #>
@@ -23,10 +23,10 @@ $datestamp = Get-Date -Format "yyyyMMMdd"
 $Url = "https://gtinetorg-admin.sharepoint.com"
 #Now Set your Output File Locations, using your temp folder currently
 $OutputFolder = "C:\Temp"
-#Path for stored encrypted ClientSecret Creds
-$path = 'C:\reportsource\O365-Azure-SPO'
 $File = "$OutputFolder\$org - SPO_Quatas-$datestamp.xml"
 $File2 = "$OutputFolder\$org - SPO_Quatas-$datestamp.xlsx"
+#Storage location of MGGraph API encrypted client secret
+$path = 'C:\O365-Azure-SPO'
 #Total Purchased Space for SharePoint
 $TotalPurchased = "11.18"
 
@@ -48,7 +48,7 @@ $Sites = (Get-SPOSite -Detailed -ErrorAction Ignore -limit all)|sort StorageUsag
 #The Excel formatting requires a proper count on our Rows or it will error out, so we are going to grab a count on how many sites we have:
 $Number = $Sites.Count
 
-#For Out Email we need the total stored size and how much is left
+#For Out Email we need the total stored size
 $TotalStored = ($Sites.StorageUsageCurrent|Measure-Object -Sum).Sum/1024/1024
 $TotalDif = $TotalPurchased - $TotalStored
 

@@ -1,4 +1,4 @@
-$ver = '2.10'
+$ver = '2.11'
 
 <#
 Created By: BTL - Kristopher Roy
@@ -159,12 +159,12 @@ $TotalDif = $TotalPurchased - $TotalStored
     <Cell ss:StyleID="s63"><Data ss:Type="String">Title</Data></Cell>
     <Cell ss:StyleID="s63"><Data ss:Type="String">URL</Data></Cell>
     <Cell ss:StyleID="s63"><Data ss:Type="String">Owner</Data></Cell>
-    <Cell ss:StyleID="s63"><Data ss:Type="String">Quota</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Quota/kb</Data></Cell>
     <Cell ss:StyleID="s63"><Data ss:Type="String">Percent</Data></Cell>
-    <Cell ss:StyleID="s63"><Data ss:Type="String">QuotaWarning</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">QuotaWarning/kb</Data></Cell>
     <Cell ss:StyleID="s63"><Data ss:Type="String">ResourceQuota</Data></Cell>
     <Cell ss:StyleID="s63"><Data ss:Type="String">ResourceQuotaWarning</Data></Cell>
-    <Cell ss:StyleID="s63"><Data ss:Type="String">StorageUsageCurrent</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">StorageUsageCurrent/kb</Data></Cell>
    </Row>')> $file
 
 #We are now going to iterate through each site collection and write them to our xml file. But of course we first need to set some parameters on how this will occur so that we can get the results we want.
@@ -275,11 +275,9 @@ $EncodedAttachment = [convert]::ToBase64String((Get-Content $report -Encoding by
                     EmailAddress = @{
                         Address = "alex.martin@gti.gt.com"}
                 }
-                }
                             @{
                     EmailAddress = @{
                         Address = "naresh.ramlogan@gti.gt.com"}
-                }
                 }
                             @{
                     EmailAddress = @{
